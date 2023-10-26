@@ -35,119 +35,136 @@ def print_stats(message):
 
 @bot.message_handler(commands=["personalStats"])
 def print_personal_stats(message):
-    if message.from_user.id not in stats[message.chat.id]['users']:
-        bot.send_message(message.chat.id, "Вы еще не написали ни одного сообщения🥲")
+    if message.chat.id not in stats.keys():
+        bot.send_message(message.chat.id, "Для начала запустите бота командой /start")
     else:
-        messages_number = stats[message.chat.id]['users'][message.from_user.id]['messages_number']
-        photos = stats[message.chat.id]['users'][message.from_user.id]['photos_number']
-        videos = stats[message.chat.id]['users'][message.from_user.id]['videos_number']
-        stickers = stats[message.chat.id]['users'][message.from_user.id]['stickers_number']
-        name = stats[message.chat.id]['users'][message.from_user.id]['nickname']
-        user_name = stats[message.chat.id]['users'][message.from_user.id]['username']
-        bot.send_message(message.chat.id, f"📈Статистика пользователя {name}(@{user_name}):\n\n" +
-                         f"✍🏻Всего сообщений: {messages_number}\n" +
-                         f"📃Стикеры: {stickers}\n" +
-                         f"🏞️Фото: {photos}\n" +
-                         f"🎥Видео: {videos}")
+        if message.from_user.id not in stats[message.chat.id]['users']:
+            bot.send_message(message.chat.id, "Вы еще не написали ни одного сообщения🥲")
+        else:
+            messages_number = stats[message.chat.id]['users'][message.from_user.id]['messages_number']
+            photos = stats[message.chat.id]['users'][message.from_user.id]['photos_number']
+            videos = stats[message.chat.id]['users'][message.from_user.id]['videos_number']
+            stickers = stats[message.chat.id]['users'][message.from_user.id]['stickers_number']
+            name = stats[message.chat.id]['users'][message.from_user.id]['nickname']
+            user_name = stats[message.chat.id]['users'][message.from_user.id]['username']
+            bot.send_message(message.chat.id, f"📈Статистика пользователя {name}(@{user_name}):\n\n" +
+                             f"✍🏻Всего сообщений: {messages_number}\n" +
+                             f"📃Стикеры: {stickers}\n" +
+                             f"🏞️Фото: {photos}\n" +
+                             f"🎥Видео: {videos}")
 
 
 @bot.message_handler(commands=["userOfTheWeek"])
 def print_most_active_week_user(message):
-    t = time.time()
-    last_week = int(t - 604800)
-    user_week_msg = {}
-    for user in stats[message.chat.id]['users'].values():
-        user_msg = user['messages_timestamps']
-        week_msg = list(map(lambda x : x >= last_week, list(user_msg.keys())))
-        user_week_msg[user['username']] = len(week_msg)
-
-    if len(user_week_msg) > 0:
-        max_value = sorted(user_week_msg.values(), reverse=True)[0]
-        n_max = sorted(user_week_msg.values(), reverse=True).count(sorted(user_week_msg.values(), reverse=True)[0])
-        users_max = []
-
-        for user in user_week_msg.items():
-            if user[1] == max_value:
-                users_max.append(user)
-        if n_max == 1:
-            bot.send_message(message.chat.id, "🤯Самый активный пользователь этой недели:\n\n" +
-                             f"@{users_max[0][0]}\n" +
-                             f"Отправленных сообщений: {users_max[0][1]}")
-        elif n_max > 1:
-            bot.send_message(message.chat.id, "🤯Самыe активныe пользователи этой недели:\n\n" +
-                             '\n'.join([f'@{name}\nОтправленных сообщений: {count}\n\n' for name, count in users_max]))
+    if message.chat.id not in stats.keys():
+        bot.send_message(message.chat.id, "Для начала запустите бота командой /start")
     else:
-        bot.send_message(message.chat.id, "В чате за последнюю неделю не было сообщений🥵")
+        t = time.time()
+        last_week = int(t - 604800)
+        user_week_msg = {}
+        for user in stats[message.chat.id]['users'].values():
+            user_msg = user['messages_timestamps']
+            week_msg = list(map(lambda x : x >= last_week, list(user_msg.keys())))
+            user_week_msg[user['username']] = len(week_msg)
+
+        if len(user_week_msg) > 0:
+            max_value = sorted(user_week_msg.values(), reverse=True)[0]
+            if max_value > 0:
+                n_max = sorted(user_week_msg.values(), reverse=True).count(sorted(user_week_msg.values(), reverse=True)[0])
+                users_max = []
+
+                for user in user_week_msg.items():
+                    if user[1] == max_value:
+                        users_max.append(user)
+                if n_max == 1:
+                    bot.send_message(message.chat.id, "🤯Самый активный пользователь этой недели:\n\n" +
+                                     f"@{users_max[0][0]}\n" +
+                                     f"Отправленных сообщений: {users_max[0][1]}")
+                elif n_max > 1:
+                    bot.send_message(message.chat.id, "🤯Самыe активныe пользователи этой недели:\n\n" +
+                                     '\n'.join([f'@{name}\nОтправленных сообщений: {count}\n\n' for name, count in users_max]))
+            else:
+                bot.send_message(message.chat.id, "В чате за последнюю неделю не было сообщений🥵")
 
 
 @bot.message_handler(commands=["userOfTheDay"])
 def print_most_active_day_user(message):
-    t = time.time()
-    last_week = int(t - 86400)
-    user_week_msg = {}
-    for user in stats[message.chat.id]['users'].values():
-        user_msg = user['messages_timestamps']
-        week_msg = list(map(lambda x: x >= last_week, list(user_msg.keys())))
-        user_week_msg[user['username']] = len(week_msg)
-
-    if len(user_week_msg) > 0:
-        max_value = sorted(user_week_msg.values(), reverse=True)[0]
-        n_max = sorted(user_week_msg.values(), reverse=True).count(sorted(user_week_msg.values(), reverse=True)[0])
-        users_max = []
-
-        for user in user_week_msg.items():
-            if user[1] == max_value:
-                users_max.append(user)
-
-        if n_max == 1:
-            bot.send_message(message.chat.id, "🥳Самый активный пользователь сегодня:\n\n" +
-                             f"@{users_max[0][0]}\n" +
-                             f"Отправленных сообщений: {users_max[0][1]}")
-        elif n_max > 1:
-            bot.send_message(message.chat.id, "🥳Самыe активныe пользователи сегодня:\n\n" +
-                             '\n'.join([f'@{name}\nОтправленных сообщений: {count}\n\n' for name, count in users_max]))
+    if message.chat.id not in stats.keys():
+        bot.send_message(message.chat.id, "Для начала запустите бота командой /start")
     else:
-        bot.send_message(message.chat.id, "В чате за последний день не было сообщений🥵")
+        t = time.time()
+        last_week = int(t - 86400)
+        user_week_msg = {}
+        for user in stats[message.chat.id]['users'].values():
+            user_msg = user['messages_timestamps']
+            week_msg = list(map(lambda x: x >= last_week, list(user_msg.keys())))
+            user_week_msg[user['username']] = len(week_msg)
+
+        if len(user_week_msg) > 0:
+            max_value = sorted(user_week_msg.values(), reverse=True)[0]
+            if max_value > 0:
+                n_max = sorted(user_week_msg.values(), reverse=True).count(sorted(user_week_msg.values(), reverse=True)[0])
+                users_max = []
+
+                for user in user_week_msg.items():
+                    if user[1] == max_value:
+                        users_max.append(user)
+
+                if n_max == 1:
+                    bot.send_message(message.chat.id, "🥳Самый активный пользователь сегодня:\n\n" +
+                                     f"@{users_max[0][0]}\n" +
+                                     f"Отправленных сообщений: {users_max[0][1]}")
+                elif n_max > 1:
+                    bot.send_message(message.chat.id, "🥳Самыe активныe пользователи сегодня:\n\n" +
+                                     '\n'.join([f'@{name}\nОтправленных сообщений: {count}\n\n' for name, count in users_max]))
+            else:
+                bot.send_message(message.chat.id, "В чате за последний день не было сообщений🥵")
 
 
 @bot.message_handler(commands=["stickersLover"])
 def print_stickers_lover(message):
-    user_stickers = {}
-    for user in stats[message.chat.id]['users'].values():
-        user_stickers[user['username']] = user['stickers_number']
-
-    if len(user_stickers) > 0:
-        max_value = sorted(user_stickers.values(), reverse=True)[0]
-        n_max = sorted(user_stickers.values(), reverse=True).count(sorted(user_stickers.values(), reverse=True)[0])
-        users_max = []
-
-        for user in user_stickers.items():
-            if user[1] == max_value:
-                users_max.append(user)
-
-        if n_max == 1:
-            bot.send_message(message.chat.id, "🥳Любитель стикеров:\n\n" +
-                             f"@{users_max[0][0]}\n" +
-                             f"Количество отправленных стикеров: {users_max[0][1]}")
-        elif n_max > 1:
-            bot.send_message(message.chat.id, "🥳Любители стикеров:\n\n" +
-                             '\n'.join([f'@{name}\nКоличество отправленных стикеров: {count}\n\n' for name, count in users_max]))
+    if message.chat.id not in stats.keys():
+        bot.send_message(message.chat.id, "Для начала запустите бота командой /start")
     else:
-        bot.send_message(message.chat.id, "В чате еще не было отправлено ни одного стикера🥵")
+        user_stickers = {}
+        for user in stats[message.chat.id]['users'].values():
+            user_stickers[user['username']] = user['stickers_number']
+
+        max_value = sorted(user_stickers.values(), reverse=True)[0]
+        if max_value > 0:
+            n_max = sorted(user_stickers.values(), reverse=True).count(sorted(user_stickers.values(), reverse=True)[0])
+            users_max = []
+
+            for user in user_stickers.items():
+                if user[1] == max_value:
+                    users_max.append(user)
+
+            if n_max == 1:
+                bot.send_message(message.chat.id, "🥳Любитель стикеров:\n\n" +
+                                 f"@{users_max[0][0]}\n" +
+                                 f"Количество отправленных стикеров: {users_max[0][1]}")
+            elif n_max > 1:
+                bot.send_message(message.chat.id, "🥳Любители стикеров:\n\n" +
+                                 '\n'.join([f'@{name}\nКоличество отправленных стикеров: {count}\n\n' for name, count in users_max]))
+        else:
+            bot.send_message(message.chat.id, "В чате еще не было отправлено ни одного стикера🥵")
 
 
 @bot.message_handler(commands=["rating"])
 def print_rating(message):
-    user_msg = []
-    for user in stats[message.chat.id]['users'].values():
-        user_msg.append((user['messages_number'], user['username']))
-
-    if len(user_msg) > 0:
-        sorted_msg = sorted(user_msg, reverse=True)
-        bot.send_message(message.chat.id, "✅Рейтинг пользователей:\n\n" +
-                        '\n'.join([f'@{name}\nОтправленных сообщений: {count}\n\n' for count, name in user_msg]))
+    if message.chat.id not in stats.keys():
+        bot.send_message(message.chat.id, "Для начала запустите бота командой /start")
     else:
-        bot.send_message(message.chat.id, "В чате еще не было сообщений🥵")
+        user_msg = []
+        for user in stats[message.chat.id]['users'].values():
+            user_msg.append((user['messages_number'], user['username']))
+
+        if len(user_msg) > 0:
+            sorted_msg = sorted(user_msg, reverse=True)
+            bot.send_message(message.chat.id, "✅Рейтинг пользователей:\n\n" +
+                            '\n'.join([f'@{name}\nОтправленных сообщений: {count}\n\n' for count, name in sorted_msg]))
+        else:
+            bot.send_message(message.chat.id, "В чате еще не было сообщений🥵")
 
 
 @bot.message_handler(commands=["help"])
@@ -243,3 +260,4 @@ def count_user_messages(message):
 
 if __name__ == "__main__":
     bot.infinity_polling()
+
