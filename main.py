@@ -172,7 +172,7 @@ def all_messages(message):
         count_user_photos(message)
     if message.content_type == 'video':
         count_videos(message)
-        count_videos(message)
+        count_user_videos(message)
 
     if not message.from_user.is_bot:
         stats[message.chat.id]['messages_number'] += 1
