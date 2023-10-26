@@ -1,7 +1,7 @@
 import telebot
 import time
 
-token = '6795790420:AAFQRQ012wWNs9uuie3ZFrwVqC2DNBgV0XE'
+token = '6663198975:AAEGsabAs2-iDQw6UO9FpYCOh-vSYqlbbic'
 bot = telebot.TeleBot(token)
 stats = {}
 
